@@ -36,7 +36,7 @@ Copy the Maven dependency into your Maven project:
 
 ### Ream from a Boundary Stream
 
-Create a boundary input stream:
+#### Create a boundary input stream:
 ```
 BoundaryInputStream bis = null;
 try {
@@ -50,7 +50,7 @@ try {
 }
 ```
 
-Read multiple stream from a boundary input stream:
+#### Read multiple stream from a boundary input stream:
 ```
 int streamIndex = 0;
 int read;
@@ -63,7 +63,7 @@ while (!bis.hasFinished()) {
 }
 ```
 
-Iterable through multiple streams:
+#### Iterable through multiple streams:
 ```
 IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
 int streamIndex = 0;
@@ -76,7 +76,7 @@ for (InputStream is : ibis) {
 }
 ```
 
-Use the multiple stream iterator:
+#### Use the multiple stream iterator:
 ```
 Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
 if (it.hasNext()) {
@@ -87,7 +87,7 @@ if (it.hasNext()) {
 
 ### Write into a Boundary Stream
 
-Create a boundary output stream:
+#### Create a boundary output stream:
 ```
 BoundaryOutputStream bos = null;
 try {
@@ -102,7 +102,7 @@ try {
 }
 ```
 
-Write multiple streams into a boundary output stream:
+#### Write multiple streams into a boundary output stream:
 ```
 byte[] subStream1 = ...
 bos.write(subStream1);
@@ -118,4 +118,4 @@ Method `boundary()` is only a convenient and identical to the code below:
 byte[] boundary = ...
 os.write(boundary);
 ```
-It's not necessary to use `BoundaryOutputStream` for being able to use `BoundaryInputStream` and `IterableBoundaryInputStream`.
+It's not necessary to use `BoundaryOutputStream` for being able to use `BoundaryInputStream` and/or `IterableBoundaryInputStream`.
