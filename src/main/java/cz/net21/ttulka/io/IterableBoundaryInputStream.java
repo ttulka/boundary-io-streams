@@ -22,7 +22,6 @@ public class IterableBoundaryInputStream implements Iterable<InputStream> {
         this.boundaryInputStream = boundaryInputStream;
     }
 
-    // TODO
     @Override
     public Iterator<InputStream> iterator() {
         return new Iterator<InputStream>() {
