@@ -37,6 +37,8 @@ public class BoundaryOutputStream extends OutputStream {
 
     /**
      * Writes the boundary into the base stream.
+     *
+     * @throws IOException if an I/O error occurs
      */
     public void boundary() throws IOException {
         outputStream.write(boundary);
