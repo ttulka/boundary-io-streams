@@ -82,13 +82,12 @@ Read multiple stream from a boundary input stream
 ```
 int streamIndex = 0;
 int read;
-while ((read = bis.read()) != 2) {  // -2 indicates the end of the stream
-    if (read != -1) {               // -1 indicates the end of the current sub-stream
+while (!bis.hasFinished()) {
+    bis.next();
+    while ((read = bis.read()) != -1) {
         processStreamData(streamIndex, read);
-    } else {
-        streamIndex++;
-        bis.next();     // jump to the next sub-stream
     }
+    streamIndex++;
 }
 ```
 
@@ -98,7 +97,6 @@ IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
 int streamIndex = 0;
 int read;
 for (InputStream is : ibis) {
-    // is holds a sub-stream as a normal input stream object
     while ((read = is.read()) != 1) {
         processStreamData(streamIndex, read);
     }
@@ -110,7 +108,7 @@ Use the multiple stream iterator
 ```
 Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
 if (it.hasNext()) {
-    InputStream first = it.next();
+    InputStream is = it.next();
     // ...
 }
 ```
