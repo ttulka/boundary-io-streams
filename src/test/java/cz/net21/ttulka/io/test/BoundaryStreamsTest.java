@@ -1,17 +1,20 @@
 package cz.net21.ttulka.io.test;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -106,6 +109,33 @@ public class BoundaryStreamsTest {
     }
 
     @Test
+    public void oneCharacterBoundaryTest() throws IOException {
+        String boundary = "#";
+
+        String strings[] = {
+                "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
+        };
+        writeStringStreams(tmpFile, boundary.getBytes(), strings);
+
+        List<String> results = new ArrayList<String>();
+
+        BoundaryInputStream bis = null;
+        try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes());
+            IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
+
+            for (InputStream is : ibis) {
+                String res = readStream(is);
+                results.add(res);
+            }
+        } finally {
+            bis.close();
+        }
+
+        compareResults(strings, results.toArray(new String[0]));
+    }
+
+    @Test
     public void shortStreamsTest() throws IOException {
         String strings[] = {
                 "a", "bc", "def", generateLongString()
@@ -124,7 +154,7 @@ public class BoundaryStreamsTest {
     @Test
     public void iterableTest() throws IOException {
         String strings[] = {
-                "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
+                "a", "bc", "def"//, generateLongString(), generateLongString() + generateLongString()
         };
         writeStringStreams(tmpFile, strings);
 
@@ -132,9 +162,12 @@ public class BoundaryStreamsTest {
 
         BoundaryInputStream bis = null;
         try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
             IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
+
             for (InputStream is : ibis) {
-                results.add(readStream(is));
+                String res = readStream(is);
+                results.add(res);
             }
         } finally {
             bis.close();
@@ -150,35 +183,35 @@ public class BoundaryStreamsTest {
         };
         writeStringStreams(tmpFile, strings);
 
-        String[] results = new String[4];
+        String[] results = new String[strings.length];
         int streamIndex = 0;
 
         BoundaryInputStream bis = null;
         try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
+
             StringBuilder sb = new StringBuilder();
             int read;
-            while ((read = bis.read()) != -2) {
-                if (read != -1) {
+            while (!bis.hasFinished()) {
+                bis.next();
+                while ((read = bis.read()) != -1) {
                     sb.append((char) read);
-                } else {
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-
-                    results[streamIndex] = sb.toString();
-                    sb = new StringBuilder();
-                    streamIndex++;
-
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-                    assertThat(bis.read(), is(-1));
-
-                    bis.next();
                 }
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+
+                results[streamIndex] = sb.toString();
+                sb = new StringBuilder();
+                streamIndex++;
+
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
+                assertThat(bis.read(), is(-1));
             }
         } finally {
             bis.close();
@@ -196,7 +229,9 @@ public class BoundaryStreamsTest {
 
         BoundaryInputStream bis = null;
         try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
             Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
+
             while (it.hasNext()) {
                 it.hasNext();
                 it.hasNext();
@@ -230,6 +265,7 @@ public class BoundaryStreamsTest {
 
         BoundaryInputStream bis = null;
         try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
             Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
 
             assertThat(it.hasNext(), is(true));
@@ -255,35 +291,99 @@ public class BoundaryStreamsTest {
         }
     }
 
-    private String readStream(InputStream is) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int read;
-        while ((read = is.read()) != -1) {
-            sb.append((char) read);
+    @Test
+    public void imageDataTest() throws IOException {
+        BoundaryOutputStream bos = null;
+        try {
+            bos = new BoundaryOutputStream(new FileOutputStream(tmpFile));
+
+            IOUtils.copy(BoundaryStreamsTest.class.getResourceAsStream("/image1.jpeg"), bos);
+            bos.boundary();
+            IOUtils.copy(BoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), bos);
+            bos.boundary();
+            IOUtils.copy(BoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), bos);
+            bos.boundary();
+
+        } finally {
+            bos.close();
         }
-        return sb.toString();
+
+        checkImagesStream();
+    }
+
+    @Test
+    public void imageDataNoBoundaryAtEndTest() throws IOException {
+        BoundaryOutputStream bos = null;
+        try {
+            bos = new BoundaryOutputStream(new FileOutputStream(tmpFile));
+
+            IOUtils.copy(BoundaryStreamsTest.class.getResourceAsStream("/image1.jpeg"), bos);
+            bos.boundary();
+            IOUtils.copy(BoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), bos);
+            bos.boundary();
+            IOUtils.copy(BoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), bos);
+            // bos.boundary(); // no boundary at the end
+
+        } finally {
+            bos.close();
+        }
+
+        checkImagesStream();
+    }
+
+    private void checkImagesStream() throws IOException {
+        File[] imageFiles = {tmpFolder.newFile(), tmpFolder.newFile(), tmpFolder.newFile()};
+
+        BoundaryInputStream bis = null;
+        try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
+            IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
+
+            int streamIndex = 0;
+
+            for (InputStream is : ibis) {
+                FileOutputStream fos = new FileOutputStream(imageFiles[streamIndex]);
+                IOUtils.copy(is, fos);
+                fos.close();
+
+                streamIndex++;
+            }
+
+        } finally {
+            bis.close();
+        }
+
+        long[] imageSizes = {34948L, 80846L, 29260L};
+
+        for (int i = 0; i < imageFiles.length; i++) {
+            assertThat(imageFiles[i].length(), is(imageSizes[i]));
+        }
+    }
+
+    private String readStream(InputStream is) throws IOException {
+        return IOUtils.toString(is, Charset.defaultCharset());
     }
 
     private void checkResults(File file, String strings[]) throws IOException {
         writeStringStreams(file, strings);
 
-        String[] results = new String[4];
+        String[] results = new String[strings.length];
         int streamIndex = 0;
 
         BoundaryInputStream bis = null;
         try {
+            bis = new BoundaryInputStream(new FileInputStream(file));
+
             StringBuilder sb = new StringBuilder();
             int read;
-            while ((read = bis.read()) != -2) {
-                if (read != -1) {
+            while (!bis.hasFinished()) {
+                bis.next();
+                while ((read = bis.read()) != -1) {
                     sb.append((char) read);
-                } else {
-                    results[streamIndex] = sb.toString();
-                    sb = new StringBuilder();
-                    streamIndex++;
-
-                    bis.next();
                 }
+                results[streamIndex] = sb.toString();
+                sb = new StringBuilder();
+                streamIndex++;
             }
         } finally {
             bis.close();
@@ -295,6 +395,8 @@ public class BoundaryStreamsTest {
     }
 
     private void compareResults(String strings[], String results[]) {
+        assertThat(results.length, is(strings.length));
+
         for (int i = 0; i < strings.length; i++) {
             assertThat(strings[i], is(results[i]));
         }
@@ -304,7 +406,7 @@ public class BoundaryStreamsTest {
     private String generateLongString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < BoundaryStreamConsts.BOUNDARY.length * 3; i++) {
-            sb.append((char) ('a' + i));
+            sb.append((char) ('0' + i));
         }
         return sb.toString();
     }
@@ -313,6 +415,21 @@ public class BoundaryStreamsTest {
         BoundaryOutputStream bos = null;
         try {
             bos = new BoundaryOutputStream(new FileOutputStream(file));
+
+            for (String str : strings) {
+                bos.write(str.getBytes());
+                bos.boundary();
+            }
+
+        } finally {
+            bos.close();
+        }
+    }
+
+    private void writeStringStreams(File file, byte[] boundary, String... strings) throws IOException {
+        BoundaryOutputStream bos = null;
+        try {
+            bos = new BoundaryOutputStream(new FileOutputStream(file), boundary);
 
             for (String str : strings) {
                 bos.write(str.getBytes());
