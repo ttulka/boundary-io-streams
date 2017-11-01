@@ -34,9 +34,60 @@ Copy the Maven dependency into your Maven project:
 </dependency>
 ```
 
+### Ream from a Boundary Stream
+
+Create a boundary input stream:
+```
+BoundaryInputStream bis = null;
+try {
+    // create the bis from a file input stream
+    FileInputStream fis = new FileInputStream("test.dat");
+    bis = new BoundaryInputStream(fis);  // or new BoundaryInputStream(fis, boundary) with an explicit boundary
+    // ...
+
+} finally {
+    bis.close();
+}
+```
+
+Read multiple stream from a boundary input stream:
+```
+int streamIndex = 0;
+int read;
+while (!bis.hasFinished()) {
+    bis.next();
+    while ((read = bis.read()) != -1) {
+        processStreamData(streamIndex, read);
+    }
+    streamIndex++;
+}
+```
+
+Iterable through multiple streams:
+```
+IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
+int streamIndex = 0;
+int read;
+for (InputStream is : ibis) {
+    while ((read = is.read()) != 1) {
+        processStreamData(streamIndex, read);
+    }
+    streamIndex++;
+}
+```
+
+Use the multiple stream iterator:
+```
+Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
+if (it.hasNext()) {
+    InputStream is = it.next();
+    // ...
+}
+```
+
 ### Write into a Boundary Stream
 
-Create a boundary output stream
+Create a boundary output stream:
 ```
 BoundaryOutputStream bos = null;
 try {
@@ -51,7 +102,7 @@ try {
 }
 ```
 
-Write multiple streams into a boundary output stream
+Write multiple streams into a boundary output stream:
 ```
 byte[] subStream1 = ...
 bos.write(subStream1);
@@ -62,53 +113,9 @@ bos.write(subStream2);
 bos.boundary(); // write the boundary after the second sub-stream
 ```
 
-### Ream from a Boundary Stream
-
-Create a boundary input stream
+Method `boundary()` is only a convenient and identical to the code below:
 ```
-BoundaryInputStream bis = null;
-try {
-    // create the bis from a file input stream
-    FileInputStream fis = new FileInputStream("test.dat");
-    bis = new BoundaryInputStream(fis);  // or new BoundaryInputStream(fis, boundary) with an explicit boundary
-    // ...
-
-} finally {
-    bis.close();
-}
+byte[] boundary = ...
+os.write(boundary);
 ```
-
-Read multiple stream from a boundary input stream
-```
-int streamIndex = 0;
-int read;
-while (!bis.hasFinished()) {
-    bis.next();
-    while ((read = bis.read()) != -1) {
-        processStreamData(streamIndex, read);
-    }
-    streamIndex++;
-}
-```
-
-Iterable through multiple streams
-```
-IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
-int streamIndex = 0;
-int read;
-for (InputStream is : ibis) {
-    while ((read = is.read()) != 1) {
-        processStreamData(streamIndex, read);
-    }
-    streamIndex++;
-}
-```
-
-Use the multiple stream iterator
-```
-Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
-if (it.hasNext()) {
-    InputStream is = it.next();
-    // ...
-}
-```
+It's not necessary to use `BoundaryOutputStream` for being able to use `BoundaryInputStream` and `IterableBoundaryInputStream`.
