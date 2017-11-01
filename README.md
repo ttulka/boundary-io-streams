@@ -87,6 +87,7 @@ while ((read = bis.read()) != 2) {  // -2 indicates the end of the stream
         processStreamData(streamIndex, read);
     } else {
         streamIndex++;
+        bis.next();     // jump to the next sub-stream
     }
 }
 ```
