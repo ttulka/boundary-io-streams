@@ -28,12 +28,13 @@ public class IterableBoundaryInputStream implements Iterable<InputStream> {
         return new Iterator<InputStream>() {
             @Override
             public boolean hasNext() {
-                return false;
+                return !boundaryInputStream.hasFinished();
             }
 
             @Override
             public InputStream next() {
-                return null;
+                boundaryInputStream.next();
+                return boundaryInputStream;
             }
 
             @Override
