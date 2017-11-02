@@ -30,7 +30,7 @@ Copy the Maven dependency into your Maven project:
 <dependency>
     <groupId>cz.net21.ttulka.io</groupId>
     <artifactId>boundary-io-streams</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -46,6 +46,7 @@ try {
     // ...
 
 } finally {
+    // closes the base 'fis' automatically
     bis.close();
 }
 ```
@@ -63,12 +64,11 @@ while (!bis.hasFinished()) {
 }
 ```
 
-#### Iterable through multiple streams:
+#### Iterate through multiple streams:
 ```
-IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
 int streamIndex = 0;
 int read;
-for (InputStream is : ibis) {
+for (InputStream is : bis) {
     while ((read = is.read()) != 1) {
         processStreamData(streamIndex, read);
     }
@@ -78,7 +78,7 @@ for (InputStream is : ibis) {
 
 #### Use the multiple stream iterator:
 ```
-Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
+Iterator<InputStream> it = bis.iterator();
 if (it.hasNext()) {
     InputStream is = it.next();
     // ...
@@ -97,7 +97,7 @@ try {
     // ...
 
 } finally {
-    // closes the base fos automatically
+    // closes the base 'fos' automatically
     bos.close();
 }
 ```
@@ -113,9 +113,23 @@ bos.write(subStream2);
 bos.boundary(); // write the boundary after the second sub-stream
 ```
 
-Method `boundary()` is only a convenient and identical to the code below:
+Method `boundary()` is only convenient and identical to the following code:
 ```
 byte[] boundary = ...
 os.write(boundary);
 ```
-It's not necessary to use `BoundaryOutputStream` for being able to use `BoundaryInputStream` and/or `IterableBoundaryInputStream`.
+So it's not necessary to create the stream via `BoundaryOutputStream` for reading it via `BoundaryInputStream`.
+
+## Release Changes
+
+### 1.0.0
+Initial version
+
+### 1.1.0
+- `BoundaryInputStream` implements `Iterable<InputStream>`.
+- `IterableBoundaryInputStream` class removed as obsolete.
+- Bugfix: `hasFinished() == true` after calling `close()`.
+
+## License
+
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
