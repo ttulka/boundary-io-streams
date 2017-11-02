@@ -10,10 +10,13 @@ import java.util.NoSuchElementException;
  *
  * @author ttulka
  */
-public class BoundaryInputStream extends InputStream {
+public class BoundaryInputStream extends InputStream implements Iterable<InputStream> {
 
     protected final InputStream inputStream;
     protected final int[] boundary;
+
+    private final BoundaryInputStreamIterator iterator;
+
     private final int[] buffer;
 
     private boolean finished = false;
@@ -47,6 +50,8 @@ public class BoundaryInputStream extends InputStream {
         for (int i = 0; i < boundary.length; i++) {
             this.boundary[i] = (int) boundary[i];
         }
+
+        this.iterator = new BoundaryInputStreamIterator(this);
     }
 
     /**
@@ -146,6 +151,11 @@ public class BoundaryInputStream extends InputStream {
         System.arraycopy(buffer, 1, buffer, 0, buffer.length - 1);
 
         return currentByte;
+    }
+
+    @Override
+    public BoundaryInputStreamIterator iterator() {
+        return this.iterator;
     }
 
     @Override

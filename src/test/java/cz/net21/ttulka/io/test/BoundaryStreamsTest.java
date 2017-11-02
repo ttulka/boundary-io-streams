@@ -25,7 +25,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import cz.net21.ttulka.io.BoundaryInputStream;
 import cz.net21.ttulka.io.BoundaryOutputStream;
 import cz.net21.ttulka.io.BoundaryStreamConsts;
-import cz.net21.ttulka.io.IterableBoundaryInputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -122,9 +121,8 @@ public class BoundaryStreamsTest {
         BoundaryInputStream bis = null;
         try {
             bis = new BoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes());
-            IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
 
-            for (InputStream is : ibis) {
+            for (InputStream is : bis) {
                 String res = readStream(is);
                 results.add(res);
             }
@@ -163,9 +161,8 @@ public class BoundaryStreamsTest {
         BoundaryInputStream bis = null;
         try {
             bis = new BoundaryInputStream(new FileInputStream(tmpFile));
-            IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
 
-            for (InputStream is : ibis) {
+            for (InputStream is : bis) {
                 String res = readStream(is);
                 results.add(res);
             }
@@ -230,7 +227,7 @@ public class BoundaryStreamsTest {
         BoundaryInputStream bis = null;
         try {
             bis = new BoundaryInputStream(new FileInputStream(tmpFile));
-            Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
+            Iterator<InputStream> it = bis.iterator();
 
             while (it.hasNext()) {
                 it.hasNext();
@@ -266,7 +263,7 @@ public class BoundaryStreamsTest {
         BoundaryInputStream bis = null;
         try {
             bis = new BoundaryInputStream(new FileInputStream(tmpFile));
-            Iterator<InputStream> it = new IterableBoundaryInputStream(bis).iterator();
+            Iterator<InputStream> it = bis.iterator();
 
             assertThat(it.hasNext(), is(true));
             // skip the first stream
@@ -337,11 +334,10 @@ public class BoundaryStreamsTest {
         BoundaryInputStream bis = null;
         try {
             bis = new BoundaryInputStream(new FileInputStream(tmpFile));
-            IterableBoundaryInputStream ibis = new IterableBoundaryInputStream(bis);
 
             int streamIndex = 0;
 
-            for (InputStream is : ibis) {
+            for (InputStream is : bis) {
                 FileOutputStream fos = new FileOutputStream(imageFiles[streamIndex]);
                 IOUtils.copy(is, fos);
                 fos.close();
