@@ -150,6 +150,9 @@ public class BoundaryInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
+        endOfCurrentStream = true;
+        finished = true;
+
         super.close();
         inputStream.close();
     }
