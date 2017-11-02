@@ -94,7 +94,7 @@ BoundaryOutputStream bos = null;
 try {
     // create the bos from a file output stream 
     FileOutputStream fos = new FileOutputStream("test.dat");
-    bos = new BoundaryOutputStream(fos);  // or new BoundaryOutputStream(fos, boundary) with an explicit boundary  
+    bos = new BoundaryOutputStream(fos);  // or 'new BoundaryOutputStream(fos, boundary)' with an explicit boundary  
     // ...
 
 } finally {
@@ -123,13 +123,13 @@ So it's not necessary to create the stream via `BoundaryOutputStream` for readin
 
 ## Release Changes
 
-### 1.0.0
-Initial version
-
 ### 1.1.0
 - `BoundaryInputStream` implements `Iterable<InputStream>`.
 - `IterableBoundaryInputStream` class removed as obsolete.
 - Bugfix: `hasFinished() == true` after calling `close()`.
+
+### 1.0.0
+Initial version
 
 ## License
 
