@@ -53,26 +53,23 @@ try {
 
 #### Read multiple stream from a boundary input stream:
 ```
-int streamIndex = 0;
-int read;
 while (!bis.hasFinished()) {
     bis.next();
-    while ((read = bis.read()) != -1) {
-        processStreamData(streamIndex, read);
+    
+    int b;
+    while ((b = bis.read()) != -1) {
+        // ...
     }
-    streamIndex++;
 }
 ```
 
 #### Iterate through multiple streams:
 ```
-int streamIndex = 0;
-int read;
 for (InputStream is : bis) {
-    while ((read = is.read()) != 1) {
-        processStreamData(streamIndex, read);
+    int b;
+    while ((b = is.read()) != 1) {
+        // ...
     }
-    streamIndex++;
 }
 ```
 
@@ -81,7 +78,11 @@ for (InputStream is : bis) {
 Iterator<InputStream> it = bis.iterator();
 if (it.hasNext()) {
     InputStream is = it.next();
-    // ...
+    
+    int b;
+    while ((b = is.read()) != 1) {
+        // ...
+    }
 }
 ```
 
