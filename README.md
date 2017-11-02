@@ -51,18 +51,6 @@ try {
 }
 ```
 
-#### Read multiple stream from a boundary input stream:
-```
-while (!bis.hasFinished()) {
-    bis.next();
-    
-    int b;
-    while ((b = bis.read()) != -1) {
-        // ...
-    }
-}
-```
-
 #### Iterate through multiple streams:
 ```
 for (InputStream is : bis) {
@@ -81,6 +69,18 @@ if (it.hasNext()) {
     
     int b;
     while ((b = is.read()) != 1) {
+        // ...
+    }
+}
+```
+
+#### Alternatively you can work with the boundary input stream directly:
+```
+while (!bis.hasFinished()) {
+    bis.next();
+    
+    int b;
+    while ((b = bis.read()) != -1) {
         // ...
     }
 }
