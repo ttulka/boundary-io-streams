@@ -1,5 +1,7 @@
 package cz.net21.ttulka.io;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
@@ -8,7 +10,7 @@ import java.util.Iterator;
  *
  * @author ttulka
  */
-public class IterableBoundaryInputStream implements Iterable<InputStream> {
+public class IterableBoundaryInputStream implements Iterable<InputStream>, Closeable {
 
     protected final BoundaryInputStream boundaryInputStream;
 
@@ -41,5 +43,10 @@ public class IterableBoundaryInputStream implements Iterable<InputStream> {
                 throw new IllegalStateException("Cannot remove from a stream.");
             }
         };
+    }
+
+    @Override
+    public void close() throws IOException {
+        boundaryInputStream.close();
     }
 }
