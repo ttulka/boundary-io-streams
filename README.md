@@ -34,7 +34,7 @@ Copy the Maven dependency into your Maven project:
 </dependency>
 ```
 
-### Ream from a Boundary Stream
+### Read from a Boundary Stream
 
 #### Create a boundary input stream:
 ```
