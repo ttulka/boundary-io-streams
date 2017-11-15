@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Super Boundary output stream decorator class.
+ * Super boundary output stream decorator class.
  *
  * @author ttulka
  */
@@ -13,7 +13,7 @@ public class SuperBoundaryOutputStream extends BoundaryOutputStream {
     protected final byte[] superBoundary;
 
     /**
-     * Creates the superBoundary output stream based on a base output stream.
+     * Creates the super boundary output stream based on a base output stream.
      * <p>
      * Uses the superBoundary from <code>{@link BoundaryStreamConsts}</code>.
      *
@@ -24,15 +24,20 @@ public class SuperBoundaryOutputStream extends BoundaryOutputStream {
     }
 
     /**
-     * Creates the superBoundary output stream based on a base output stream with an explicit superBoundary.
+     * Creates the super boundary output stream based on a base output stream with explicit boundaries.
      *
      * @param outputStream  the base output stream
-     * @param boundary      the superBoundary
-     * @param superBoundary the super superBoundary
+     * @param boundary      the boundary
+     * @param superBoundary the super boundary
+     * @throws IllegalArgumentException when the boundary is a substring of the super boundary or vice versa
      */
     public SuperBoundaryOutputStream(OutputStream outputStream, byte[] boundary, byte[] superBoundary) {
         super(outputStream, boundary);
         this.superBoundary = superBoundary;
+
+        if (new String(boundary).contains(new String(superBoundary)) || new String(superBoundary).contains(new String(boundary))) {
+            throw new IllegalArgumentException("The boundary cannot be a substring of the super boundary or vice versa.");
+        }
     }
 
     /**
