@@ -15,7 +15,7 @@ public class SuperBoundaryOutputStream extends BoundaryOutputStream {
     /**
      * Creates the super boundary output stream based on a base output stream.
      * <p>
-     * Uses the superBoundary from <code>{@link BoundaryStreamConsts}</code>.
+     * Uses the boundaries from <code>{@link BoundaryStreamConsts}</code>.
      *
      * @param outputStream the base output stream
      */
@@ -41,7 +41,7 @@ public class SuperBoundaryOutputStream extends BoundaryOutputStream {
     }
 
     /**
-     * Writes the super superBoundary into the base stream.
+     * Writes the super boundary into the base stream.
      *
      * @throws IOException if an I/O error occurs
      */
