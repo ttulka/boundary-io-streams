@@ -31,6 +31,7 @@ public class BoundaryOutputStream extends OutputStream {
      * @param boundary     the boundary
      */
     public BoundaryOutputStream(OutputStream outputStream, byte[] boundary) {
+        super();
         this.outputStream = outputStream;
         this.boundary = boundary;
     }
