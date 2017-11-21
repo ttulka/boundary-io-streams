@@ -394,7 +394,7 @@ public class BoundaryStreamsTest {
         assertThat(results.length, is(strings.length));
 
         for (int i = 0; i < strings.length; i++) {
-            assertThat(strings[i], is(results[i]));
+            assertThat(results[i], is(strings[i]));
         }
     }
 

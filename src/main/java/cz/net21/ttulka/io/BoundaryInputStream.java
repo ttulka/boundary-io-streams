@@ -45,8 +45,9 @@ public class BoundaryInputStream extends InputStream implements Iterable<InputSt
     public BoundaryInputStream(InputStream inputStream, byte[] boundary) {
         super();
         this.inputStream = inputStream;
-        this.buffer = new int[boundary.length];
         this.boundary = new int[boundary.length];
+
+        this.buffer = new int[boundary.length];
 
         for (int i = 0; i < boundary.length; i++) {
             this.boundary[i] = (int) boundary[i];
