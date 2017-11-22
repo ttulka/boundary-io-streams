@@ -724,12 +724,7 @@ public class SuperBoundaryStreamsTest {
         try {
             sbos = new SuperBoundaryOutputStream(new FileOutputStream(file));
 
-            for (String str : strings) {
-                sbos.write(str.getBytes());
-                sbos.boundary();
-            }
-
-            sbos.superBoundary();
+            writeStringStreams(sbos, strings);
 
         } finally {
             sbos.close();
@@ -741,16 +736,22 @@ public class SuperBoundaryStreamsTest {
         try {
             sbos = new SuperBoundaryOutputStream(new FileOutputStream(file), boundary, superBoundary);
 
-            for (String str : strings) {
-                sbos.write(str.getBytes());
-                sbos.boundary();
-            }
-
-            sbos.superBoundary();
+            writeStringStreams(sbos, strings);
 
         } finally {
             sbos.close();
         }
+    }
+
+    private void writeStringStreams(SuperBoundaryOutputStream sbos, String... strings) throws IOException {
+        for (String str : strings) {
+            sbos.write(str.getBytes());
+            sbos.boundary();
+        }
+
+        sbos.superBoundary();
+
+        sbos.write("some junk".getBytes());
     }
 
     private String readFileContent(File file) throws FileNotFoundException {

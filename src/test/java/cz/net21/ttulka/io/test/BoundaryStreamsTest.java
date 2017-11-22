@@ -468,10 +468,7 @@ public class BoundaryStreamsTest {
         try {
             bos = new BoundaryOutputStream(new FileOutputStream(file));
 
-            for (String str : strings) {
-                bos.write(str.getBytes());
-                bos.boundary();
-            }
+            writeStringStreams(bos, strings);
 
         } finally {
             bos.close();
@@ -483,13 +480,17 @@ public class BoundaryStreamsTest {
         try {
             bos = new BoundaryOutputStream(new FileOutputStream(file), boundary);
 
-            for (String str : strings) {
-                bos.write(str.getBytes());
-                bos.boundary();
-            }
+            writeStringStreams(bos, strings);
 
         } finally {
             bos.close();
+        }
+    }
+
+    private void writeStringStreams(BoundaryOutputStream bos, String... strings) throws IOException {
+        for (String str : strings) {
+            bos.write(str.getBytes());
+            bos.boundary();
         }
     }
 
