@@ -134,6 +134,62 @@ public class BoundaryStreamsTest {
     }
 
     @Test
+    public void noBoundaryShortTest() throws IOException {
+        String strings[] = {
+                "a"
+        };
+        writeStringStreams(tmpFile, new byte[0], strings);
+
+        List<String> results = new ArrayList<String>();
+
+        BoundaryInputStream bis = null;
+        try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
+
+            for (InputStream is : bis) {
+                String res = readStream(is);
+                results.add(res);
+            }
+        } finally {
+            bis.close();
+        }
+
+        compareResults(strings, results.toArray(new String[0]));
+    }
+
+    @Test
+    public void noBoundaryLongTest() throws IOException {
+        String strings[] = {
+                generateLongString() + generateLongString()
+        };
+        writeStringStreams(tmpFile, new byte[0], strings);
+
+        List<String> results = new ArrayList<String>();
+
+        BoundaryInputStream bis = null;
+        try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
+
+            for (InputStream is : bis) {
+                String res = readStream(is);
+                results.add(res);
+            }
+        } finally {
+            bis.close();
+        }
+
+        compareResults(strings, results.toArray(new String[0]));
+    }
+
+    @Test
+    public void microStreamTest() throws IOException {
+        String strings[] = {
+                "a"
+        };
+        checkResults(tmpFile, strings);
+    }
+
+    @Test
     public void shortStreamsTest() throws IOException {
         String strings[] = {
                 "a", "bc", "def", generateLongString()

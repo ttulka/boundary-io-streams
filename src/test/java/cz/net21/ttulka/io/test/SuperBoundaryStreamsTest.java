@@ -29,7 +29,6 @@ import cz.net21.ttulka.io.SuperBoundaryOutputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.booleanThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -374,6 +373,62 @@ public class SuperBoundaryStreamsTest {
         }
 
         compareResults(strings, results.toArray(new String[0]));
+    }
+
+    @Test
+    public void noBoundaryShortTest() throws IOException {
+        String strings[] = {
+                "a"
+        };
+        writeStringStreams(tmpFile, new byte[0], new byte[0], strings);
+
+        List<String> results = new ArrayList<String>();
+
+        BoundaryInputStream bis = null;
+        try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
+
+            for (InputStream is : bis) {
+                String res = readStream(is);
+                results.add(res);
+            }
+        } finally {
+            bis.close();
+        }
+
+        compareResults(strings, results.toArray(new String[0]));
+    }
+
+    @Test
+    public void noBoundaryLongTest() throws IOException {
+        String strings[] = {
+                generateLongString() + generateLongString()
+        };
+        writeStringStreams(tmpFile, new byte[0], new byte[0], strings);
+
+        List<String> results = new ArrayList<String>();
+
+        BoundaryInputStream bis = null;
+        try {
+            bis = new BoundaryInputStream(new FileInputStream(tmpFile));
+
+            for (InputStream is : bis) {
+                String res = readStream(is);
+                results.add(res);
+            }
+        } finally {
+            bis.close();
+        }
+
+        compareResults(strings, results.toArray(new String[0]));
+    }
+
+    @Test
+    public void microStreamTest() throws IOException {
+        String strings[] = {
+                "a"
+        };
+        checkResults(tmpFile, strings);
     }
 
     @Test
