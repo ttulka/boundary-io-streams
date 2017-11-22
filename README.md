@@ -123,6 +123,9 @@ So it's not necessary to create the stream via `BoundaryOutputStream` for readin
 
 ## Release Changes
 
+### 1.2.0
+- `SuperBoundaryInputStream` class added.
+
 ### 1.1.0
 - `BoundaryInputStream` implements `Iterable<InputStream>`.
 - `IterableBoundaryInputStream` class removed as obsolete.
