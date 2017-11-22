@@ -15,15 +15,14 @@ public class BoundaryInputStream extends InputStream implements Iterable<InputSt
     protected final InputStream inputStream;
     protected final int[] boundary;
 
+    protected boolean finished = false;
+    protected boolean started = false;
+    protected boolean endOfCurrentStream = false;
+
     private final BoundaryInputStreamIterator iterator;
 
     private final int[] buffer;
-
-    private boolean finished = false;
-    private boolean started = false;
-
     private int bufferIndex = 0;
-    private boolean endOfCurrentStream = false;
 
     /**
      * Creates the boundary input stream based on a base input stream.
@@ -59,7 +58,7 @@ public class BoundaryInputStream extends InputStream implements Iterable<InputSt
     /**
      * Returns true if the stream has already reached EOF.
      *
-     * @return true if the steam finished, otherwise false
+     * @return true if the stream finished, otherwise false
      */
     public boolean hasFinished() {
         return finished;
