@@ -117,9 +117,6 @@ public class BoundaryInputStream extends InputStream implements Iterable<InputSt
                 break;
             }
             bufferIndex++;
-            if (bufferIndex >= buffer.length) {
-                bufferIndex = buffer.length - 1;
-            }
         }
 
         // are we at the boundary?

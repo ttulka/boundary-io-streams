@@ -21,7 +21,7 @@ public class SuperBoundaryInputStream extends BoundaryInputStream implements Ite
     private boolean finished = false;
     private boolean started = false;
 
-    private int bufferIndex = 0;
+    private boolean bufferFilled = false;
     private boolean endOfCurrentStream = false;
 
     /**
@@ -44,10 +44,15 @@ public class SuperBoundaryInputStream extends BoundaryInputStream implements Ite
      */
     public SuperBoundaryInputStream(InputStream inputStream, byte[] boundary, byte[] superBoundary) {
         super(inputStream, boundary);
-        this.buffer = new int[superBoundary.length];
         this.superBoundary = new int[superBoundary.length];
 
-        for (int i = 0; i < boundary.length; i++) {
+        if (new String(boundary).contains(new String(superBoundary)) || new String(superBoundary).contains(new String(boundary))) {
+            throw new IllegalArgumentException("The boundary cannot be a substring of the super boundary or vice versa.");
+        }
+
+        this.buffer = new int[Math.max(boundary.length, superBoundary.length)];
+
+        for (int i = 0; i < superBoundary.length; i++) {
             this.superBoundary[i] = (int) superBoundary[i];
         }
 
@@ -59,6 +64,7 @@ public class SuperBoundaryInputStream extends BoundaryInputStream implements Ite
      *
      * @return true if the steam finished, otherwise false
      */
+    @Override
     public boolean hasFinished() {
         return finished;
     }
@@ -68,6 +74,7 @@ public class SuperBoundaryInputStream extends BoundaryInputStream implements Ite
      *
      * @throws NoSuchElementException when no more sub-streams
      */
+    @Override
     public void next() {
         if (finished) {
             throw new NoSuchElementException("Stream already finished.");
@@ -107,38 +114,39 @@ public class SuperBoundaryInputStream extends BoundaryInputStream implements Ite
         if (endOfCurrentStream) {
             return -1;
         }
-        // fill the buffer
-        for (int i = bufferIndex; i < buffer.length; i++) {
-            buffer[i] = super.read();
 
-            if (buffer[i] == -1) {
-                break;
-            }
-            bufferIndex++;
-            if (bufferIndex >= buffer.length) {
-                bufferIndex = buffer.length - 1;
-            }
+        // fill the buffer
+        if (!bufferFilled) {
+            fillBuffer();
+            bufferFilled = true;
+
         }
 
         // are we at the superBoundary?
-        if (Arrays.equals(buffer, superBoundary)) {
+        if (startsWith(buffer, superBoundary)) {
+            endOfCurrentStream = true;
+            finished = true;
+
+            return -1;
+        }
+        // are we at the boundary?
+        if (startsWith(buffer, boundary)) {
             endOfCurrentStream = true;
 
-            // read one next byte to check if not EOF
-            buffer[0] = super.read();
-            if (buffer[0] == -1) {
+            // remove this boundary bytes and read the rest
+            for (int i = 0; i < boundary.length; i++) {
+                addToBuffer();
+            }
+
+            if (buffer[0] == -1 || startsWith(buffer, superBoundary)) {
                 finished = true;
             }
-            bufferIndex = 1;    // next write as the second byte
 
             return -1;
         }
 
-        // after the buffer is filled, write always on the end
-        bufferIndex = buffer.length - 1;
-
         // read always from the top of the buffer
-        int currentByte = buffer[0];
+        int currentByte = addToBuffer();
 
         // finish the reading
         if (currentByte == -1) {
@@ -147,8 +155,36 @@ public class SuperBoundaryInputStream extends BoundaryInputStream implements Ite
             return -1;
         }
 
+        return currentByte;
+    }
+
+    private boolean startsWith(int[] buffer, int[] prefix) {
+        for (int i = 0; i < prefix.length; i++) {
+            if (buffer[i] != prefix[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void fillBuffer() throws IOException {
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = inputStream.read();
+
+            if (buffer[i] == -1) {
+                Arrays.fill(buffer, i + 1, buffer.length, -1);
+                break;
+            }
+        }
+    }
+
+    private int addToBuffer() throws IOException {
+        int currentByte = buffer[0];
+
         // shift the buffer to the top (first byte will be returned)
         System.arraycopy(buffer, 1, buffer, 0, buffer.length - 1);
+
+        buffer[buffer.length - 1] = inputStream.read();
 
         return currentByte;
     }

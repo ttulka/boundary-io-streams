@@ -38,6 +38,8 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class SuperBoundaryStreamsTest {
 
+    private static final String JUNK = "some junk";
+
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
@@ -84,7 +86,8 @@ public class SuperBoundaryStreamsTest {
                                + "bc" + boundaryString
                                + "def" + boundaryString
                                + longString + boundaryString
-                               + superBoundaryString));
+                               + superBoundaryString
+                               + JUNK));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -179,8 +182,8 @@ public class SuperBoundaryStreamsTest {
 
     @Test
     public void superBoundaryLongerThanBoundaryTest() throws IOException {
-        String boundary = "xx";
-        String superBoundary = "xxx";
+        String boundary = "@@";
+        String superBoundary = "###";
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
@@ -206,8 +209,8 @@ public class SuperBoundaryStreamsTest {
 
     @Test
     public void superBoundaryShorterThanBoundaryTest() throws IOException {
-        String boundary = "xxx";
-        String superBoundary = "xx";
+        String boundary = "@@@";
+        String superBoundary = "##";
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
@@ -248,6 +251,7 @@ public class SuperBoundaryStreamsTest {
             toWrite.add(s);
         }
         toWrite.add(new String(BoundaryStreamConsts.SUPER_BOUNDARY));
+        toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
@@ -280,6 +284,7 @@ public class SuperBoundaryStreamsTest {
             toWrite.add(new String(BoundaryStreamConsts.BOUNDARY));
         }
         toWrite.add(new String(BoundaryStreamConsts.SUPER_BOUNDARY));
+        toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
@@ -320,6 +325,7 @@ public class SuperBoundaryStreamsTest {
             toWrite.add(s);
         }
         toWrite.add(superBoundary);
+        toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
@@ -355,6 +361,7 @@ public class SuperBoundaryStreamsTest {
             toWrite.add(boundary);
         }
         toWrite.add(superBoundary);
+        toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
@@ -380,7 +387,7 @@ public class SuperBoundaryStreamsTest {
         String strings[] = {
                 "a"
         };
-        writeStringStreams(tmpFile, new byte[0], new byte[0], strings);
+        writeStrings(tmpFile, strings);
 
         List<String> results = new ArrayList<String>();
 
@@ -404,7 +411,7 @@ public class SuperBoundaryStreamsTest {
         String strings[] = {
                 generateLongString() + generateLongString()
         };
-        writeStringStreams(tmpFile, new byte[0], new byte[0], strings);
+        writeStrings(tmpFile, strings);
 
         List<String> results = new ArrayList<String>();
 
@@ -599,6 +606,10 @@ public class SuperBoundaryStreamsTest {
             IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), sbos);
             sbos.boundary();
 
+            sbos.superBoundary();
+
+            sbos.write(JUNK.getBytes());
+
         } finally {
             sbos.close();
         }
@@ -617,7 +628,11 @@ public class SuperBoundaryStreamsTest {
             IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), sbos);
             sbos.boundary();
             IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), sbos);
-            // bos.superBoundary(); // no superBoundary at the end
+            // sbos.boundary(); // no boundary at the end
+
+            sbos.superBoundary();
+
+            sbos.write(JUNK.getBytes());
 
         } finally {
             sbos.close();
@@ -751,7 +766,7 @@ public class SuperBoundaryStreamsTest {
 
         sbos.superBoundary();
 
-        sbos.write("some junk".getBytes());
+        sbos.write(JUNK.getBytes());
     }
 
     private String readFileContent(File file) throws FileNotFoundException {
