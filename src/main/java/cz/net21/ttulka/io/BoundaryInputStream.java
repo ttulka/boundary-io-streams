@@ -13,16 +13,14 @@ import java.util.NoSuchElementException;
 public class BoundaryInputStream extends InputStream implements Iterable<InputStream> {
 
     protected final InputStream inputStream;
-    protected final int[] boundary;
 
-    protected boolean finished = false;
-    protected boolean started = false;
-    protected boolean endOfCurrentStream = false;
-
+    final int[] boundary;
+    final int[] buffer;
     private final BoundaryInputStreamIterator iterator;
-
-    private final int[] buffer;
-    private int bufferIndex = 0;
+    boolean finished = false;
+    boolean started = false;
+    boolean endOfCurrentStream = false;
+    private boolean bufferFilled = false;
 
     /**
      * Creates the boundary input stream based on a base input stream.
@@ -42,17 +40,25 @@ public class BoundaryInputStream extends InputStream implements Iterable<InputSt
      * @param boundary    the boundary
      */
     public BoundaryInputStream(InputStream inputStream, byte[] boundary) {
+        this(inputStream, boundary, boundary.length);
+    }
+
+    BoundaryInputStream(InputStream inputStream, byte[] boundary, int bufferSize) {
         super();
         this.inputStream = inputStream;
-        this.boundary = new int[boundary.length];
-
-        this.buffer = new int[boundary.length];
-
-        for (int i = 0; i < boundary.length; i++) {
-            this.boundary[i] = (int) boundary[i];
-        }
+        this.boundary = copyBoundary(boundary);
+        this.buffer = new int[bufferSize];
 
         this.iterator = new BoundaryInputStreamIterator(this);
+    }
+
+    int[] copyBoundary(byte[] boundary) {
+        int[] boundaryCopy = new int[boundary.length];
+
+        for (int i = 0; i < boundary.length; i++) {
+            boundaryCopy[i] = (int) boundary[i];
+        }
+        return boundaryCopy;
     }
 
     /**
@@ -108,45 +114,62 @@ public class BoundaryInputStream extends InputStream implements Iterable<InputSt
         if (endOfCurrentStream) {
             return -1;
         }
-        // fill the buffer
-        for (int i = bufferIndex; i < buffer.length; i++) {
-            buffer[i] = inputStream.read();
 
-            if (buffer[i] == -1) {
-                break;
-            }
-            bufferIndex++;
-        }
+        initBuffer();
 
         // are we at the boundary?
         if (Arrays.equals(buffer, boundary)) {
             endOfCurrentStream = true;
 
-            // read one next byte to check if not EOF
-            buffer[0] = inputStream.read();
+            fillBufferFromStream();
+
             if (buffer[0] == -1) {
                 finished = true;
             }
-            bufferIndex = 1;    // next write as the second byte
 
             return -1;
         }
 
-        // after the buffer is filled, write always on the end
-        bufferIndex = buffer.length - 1;
-
         // read always from the top of the buffer
-        int currentByte = buffer[0];
+        int currentByte = readByteToBufferAndGet();
 
         // finish the reading
         if (currentByte == -1) {
             endOfCurrentStream = true;
             finished = true;
+
             return -1;
         }
 
+        return currentByte;
+    }
+
+    void initBuffer() throws IOException {
+        if (!bufferFilled) {
+            fillBufferFromStream();
+
+            bufferFilled = true;
+        }
+    }
+
+    private void fillBufferFromStream() throws IOException {
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = inputStream.read();
+
+            if (buffer[i] == -1) {
+                Arrays.fill(buffer, i + 1, buffer.length, -1);
+                break;
+            }
+        }
+    }
+
+    int readByteToBufferAndGet() throws IOException {
+        int currentByte = buffer[0];
+
         // shift the buffer to the top (first byte will be returned)
         System.arraycopy(buffer, 1, buffer, 0, buffer.length - 1);
+
+        buffer[buffer.length - 1] = inputStream.read();
 
         return currentByte;
     }

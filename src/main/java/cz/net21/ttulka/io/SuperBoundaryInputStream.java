@@ -2,7 +2,6 @@ package cz.net21.ttulka.io;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
@@ -13,9 +12,6 @@ import java.util.NoSuchElementException;
 public class SuperBoundaryInputStream extends BoundaryInputStream {
 
     protected final int[] superBoundary;
-
-    private final int[] buffer;
-    private boolean bufferFilled = false;
 
     /**
      * Creates the super boundary input stream based on a base input stream.
@@ -36,17 +32,11 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
      * @param superBoundary the super boundary
      */
     public SuperBoundaryInputStream(InputStream inputStream, byte[] boundary, byte[] superBoundary) {
-        super(inputStream, boundary);
-        this.superBoundary = new int[superBoundary.length];
+        super(inputStream, boundary, Math.max(boundary.length, superBoundary.length));
+        this.superBoundary = copyBoundary(superBoundary);
 
         if (new String(boundary).contains(new String(superBoundary)) || new String(superBoundary).contains(new String(boundary))) {
             throw new IllegalArgumentException("The boundary cannot be a substring of the super boundary or vice versa.");
-        }
-
-        this.buffer = new int[Math.max(boundary.length, superBoundary.length)];
-
-        for (int i = 0; i < superBoundary.length; i++) {
-            this.superBoundary[i] = (int) superBoundary[i];
         }
     }
 
@@ -89,18 +79,7 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
             return -1;
         }
 
-        // fill the buffer
-        if (!bufferFilled) {
-            for (int i = 0; i < buffer.length; i++) {
-                buffer[i] = inputStream.read();
-
-                if (buffer[i] == -1) {
-                    Arrays.fill(buffer, i + 1, buffer.length, -1);
-                    break;
-                }
-            }
-            bufferFilled = true;
-        }
+        initBuffer();
 
         // are we at the superBoundary?
         if (startsWith(buffer, superBoundary)) {
@@ -115,7 +94,7 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
 
             // remove this boundary bytes and read the rest
             for (int i = 0; i < boundary.length; i++) {
-                addToBuffer();
+                readByteToBufferAndGet();
             }
 
             if (buffer[0] == -1 || startsWith(buffer, superBoundary)) {
@@ -126,12 +105,13 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
         }
 
         // read always from the top of the buffer
-        int currentByte = addToBuffer();
+        int currentByte = readByteToBufferAndGet();
 
         // finish the reading
         if (currentByte == -1) {
             endOfCurrentStream = true;
             finished = true;
+
             return -1;
         }
 
@@ -145,16 +125,5 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
             }
         }
         return true;
-    }
-
-    private int addToBuffer() throws IOException {
-        int currentByte = buffer[0];
-
-        // shift the buffer to the top (first byte will be returned)
-        System.arraycopy(buffer, 1, buffer, 0, buffer.length - 1);
-
-        buffer[buffer.length - 1] = inputStream.read();
-
-        return currentByte;
     }
 }
