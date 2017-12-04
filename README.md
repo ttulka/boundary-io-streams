@@ -55,7 +55,7 @@ try {
 ```
 for (InputStream is : bis) {
     int b;
-    while ((b = is.read()) != 1) {
+    while ((b = is.read()) != -1) {
         // ...
     }
 }
@@ -68,7 +68,7 @@ if (it.hasNext()) {
     InputStream is = it.next();
     
     int b;
-    while ((b = is.read()) != 1) {
+    while ((b = is.read()) != -1) {
         // ...
     }
 }
@@ -121,10 +121,60 @@ os.write(boundary);
 ```
 So it's not necessary to create the stream via `BoundaryOutputStream` for reading it via `BoundaryInputStream`.
 
+### Stop Boundary Stream
+
+To stop consuming stream after a boundary it is possible to use the `StopBoundaryInputStream` class and the convenience class `StopBoundaryOutputStream` to generate such a stream.
+The Stop Boundary Streaming is still using a boundary to separate sub-stream, but when a stop boundary occurs the rest of the input stream is ignored.
+
+The manner of work is same as with `BoundaryInputStream`, resp. `BoundaryOutputStream`.
+
+#### Example:
+```
+String[] values = {
+        "abcde", "ABCDE", "12345"
+};
+
+byte[] boundary = "|".getBytes();
+byte[] stopBoundary = "#".getBytes();
+
+ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
+StopBoundaryOutputStream out = new StopBoundaryOutputStream(bytes, boundary, stopBoundary);
+
+for (String s : values) {
+    out.write(s.getBytes());
+    out.boundary();
+}
+out.stopBoundary();
+out.write("xyz".getBytes());    // some junk at the end
+
+//System.out.println(bytes);    // prints `abcde|ABCDE|12345|#xyz`
+
+StopBoundaryInputStream in = new StopBoundaryInputStream(
+        new ByteArrayInputStream(bytes.toByteArray()), boundary, stopBoundary);
+
+for (InputStream is : in) {
+    int b;
+    while ((b = is.read()) != -1) {
+        System.out.print((char) b);
+    }
+    System.out.println();
+}
+
+// close streams...
+```
+The code above prints:
+```
+abcde
+ABCDE
+12345
+```
+The last string `xyz` is ignored after the stop boundary was reached.
+
 ## Release Changes
 
 ### 1.2.0
-- `SuperBoundaryInputStream` class added.
+- `StopBoundaryInputStream` and `StopBoundaryOutputStream` classes added.
 
 ### 1.1.0
 - `BoundaryInputStream` implements `Iterable<InputStream>`.
