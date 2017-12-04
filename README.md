@@ -30,7 +30,7 @@ Copy the Maven dependency into your Maven project:
 <dependency>
     <groupId>cz.net21.ttulka.io</groupId>
     <artifactId>boundary-io-streams</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
