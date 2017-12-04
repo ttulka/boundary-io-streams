@@ -123,8 +123,8 @@ So it's not necessary to create the stream via `BoundaryOutputStream` for readin
 
 ### Stop Boundary Stream
 
-To stop consuming stream after a boundary it is possible to use the `StopBoundaryInputStream` class and the convenience class `StopBoundaryOutputStream` to generate such a stream.
-The Stop Boundary Streaming is still using a boundary to separate sub-stream, but when a stop boundary occurs the rest of the input stream is ignored.
+To stop consuming a stream after a boundary was reached it is possible to use the `StopBoundaryInputStream` class and the convenience class `StopBoundaryOutputStream` to generate such a stream.
+The stop boundary streaming is still using a boundary to separate sub-streams, but when a stop boundary occurs the rest of the input stream is ignored.
 
 The manner of work is same as with `BoundaryInputStream`, resp. `BoundaryOutputStream`.
 
