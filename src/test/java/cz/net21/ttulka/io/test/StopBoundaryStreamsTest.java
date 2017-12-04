@@ -24,8 +24,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import cz.net21.ttulka.io.BoundaryInputStream;
 import cz.net21.ttulka.io.BoundaryStreamConsts;
-import cz.net21.ttulka.io.SuperBoundaryInputStream;
-import cz.net21.ttulka.io.SuperBoundaryOutputStream;
+import cz.net21.ttulka.io.StopBoundaryInputStream;
+import cz.net21.ttulka.io.StopBoundaryOutputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
  * @author ttulka
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SuperBoundaryStreamsTest {
+public class StopBoundaryStreamsTest {
 
     private static final String JUNK = "some junk";
 
@@ -64,7 +64,7 @@ public class SuperBoundaryStreamsTest {
     @Test
     public void closeOutputStreamTest() throws IOException {
         OutputStream os = mock(OutputStream.class);
-        SuperBoundaryOutputStream sbos = new SuperBoundaryOutputStream(os);
+        StopBoundaryOutputStream sbos = new StopBoundaryOutputStream(os);
 
         sbos.close();
 
@@ -75,7 +75,7 @@ public class SuperBoundaryStreamsTest {
     @Test
     public void basicOutputStreamTest() throws IOException {
         String boundaryString = new String(BoundaryStreamConsts.BOUNDARY);
-        String superBoundaryString = new String(BoundaryStreamConsts.SUPER_BOUNDARY);
+        String stopBoundaryString = new String(BoundaryStreamConsts.STOP_BOUNDARY);
         String longString = generateLongString();
 
         writeStringStreams(tmpFile, "a", "bc", "def", longString);
@@ -86,54 +86,54 @@ public class SuperBoundaryStreamsTest {
                                + "bc" + boundaryString
                                + "def" + boundaryString
                                + longString + boundaryString
-                               + superBoundaryString
+                               + stopBoundaryString
                                + JUNK));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void illegalArgumentOutputStream1Test() {
         OutputStream os = mock(OutputStream.class);
-        new SuperBoundaryOutputStream(os, "xxx".getBytes(), "xx".getBytes());
+        new StopBoundaryOutputStream(os, "xxx".getBytes(), "xx".getBytes());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void illegalArgumentOutputStream2Test() {
         OutputStream os = mock(OutputStream.class);
-        new SuperBoundaryOutputStream(os, "xx".getBytes(), "xxx".getBytes());
+        new StopBoundaryOutputStream(os, "xx".getBytes(), "xxx".getBytes());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void illegalArgumentOutputStream3Test() {
         OutputStream os = mock(OutputStream.class);
-        new SuperBoundaryOutputStream(os, "xxx".getBytes(), "xxx".getBytes());
+        new StopBoundaryOutputStream(os, "xxx".getBytes(), "xxx".getBytes());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void illegalArgumentInputStream1Test() {
         InputStream is = mock(InputStream.class);
-        new SuperBoundaryInputStream(is, "xxx".getBytes(), "xx".getBytes());
+        new StopBoundaryInputStream(is, "xxx".getBytes(), "xx".getBytes());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void illegalArgumentInputStream2Test() {
         InputStream is = mock(InputStream.class);
-        new SuperBoundaryInputStream(is, "xx".getBytes(), "xxx".getBytes());
+        new StopBoundaryInputStream(is, "xx".getBytes(), "xxx".getBytes());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void illegalArgumentInputStream3Test() {
         InputStream is = mock(InputStream.class);
-        new SuperBoundaryInputStream(is, "xxx".getBytes(), "xxx".getBytes());
+        new StopBoundaryInputStream(is, "xxx".getBytes(), "xxx".getBytes());
     }
 
     @Test
     public void explicitBoundaryTest() throws IOException {
         String boundary = "--TEST_BOUNDARY--";
-        String superBoundary = "--TEST_SUPER_BOUNDARY--";
+        String stopBoundary = "--TEST_STOP_BOUNDARY--";
 
-        SuperBoundaryOutputStream sbos = null;
+        StopBoundaryOutputStream sbos = null;
         try {
-            sbos = new SuperBoundaryOutputStream(new FileOutputStream(tmpFile), boundary.getBytes(), superBoundary.getBytes());
+            sbos = new StopBoundaryOutputStream(new FileOutputStream(tmpFile), boundary.getBytes(), stopBoundary.getBytes());
 
             sbos.write("abc".getBytes());
             sbos.boundary();
@@ -142,7 +142,7 @@ public class SuperBoundaryStreamsTest {
             sbos.boundary();
 
             sbos.write("ghi".getBytes());
-            sbos.superBoundary();
+            sbos.stopBoundary();
 
         } finally {
             sbos.close();
@@ -150,24 +150,24 @@ public class SuperBoundaryStreamsTest {
 
         String content = readFileContent(tmpFile);
 
-        assertThat(content, is("abc" + boundary + "def" + boundary + "ghi" + superBoundary));
+        assertThat(content, is("abc" + boundary + "def" + boundary + "ghi" + stopBoundary));
     }
 
     @Test
     public void oneCharacterBoundaryTest() throws IOException {
         String boundary = String.valueOf('\1');
-        String superBoundary = String.valueOf('\2');
+        String stopBoundary = String.valueOf('\2');
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
         };
-        writeStringStreams(tmpFile, boundary.getBytes(), superBoundary.getBytes(), strings);
+        writeStringStreams(tmpFile, boundary.getBytes(), stopBoundary.getBytes(), strings);
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), superBoundary.getBytes());
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), stopBoundary.getBytes());
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -181,20 +181,20 @@ public class SuperBoundaryStreamsTest {
     }
 
     @Test
-    public void superBoundaryLongerThanBoundaryTest() throws IOException {
+    public void stopBoundaryLongerThanBoundaryTest() throws IOException {
         String boundary = "@@";
-        String superBoundary = "###";
+        String stopBoundary = "###";
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
         };
-        writeStringStreams(tmpFile, boundary.getBytes(), superBoundary.getBytes(), strings);
+        writeStringStreams(tmpFile, boundary.getBytes(), stopBoundary.getBytes(), strings);
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), superBoundary.getBytes());
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), stopBoundary.getBytes());
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -208,20 +208,20 @@ public class SuperBoundaryStreamsTest {
     }
 
     @Test
-    public void superBoundaryShorterThanBoundaryTest() throws IOException {
+    public void stopBoundaryShorterThanBoundaryTest() throws IOException {
         String boundary = "@@@";
-        String superBoundary = "##";
+        String stopBoundary = "##";
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
         };
-        writeStringStreams(tmpFile, boundary.getBytes(), superBoundary.getBytes(), strings);
+        writeStringStreams(tmpFile, boundary.getBytes(), stopBoundary.getBytes(), strings);
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), superBoundary.getBytes());
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), stopBoundary.getBytes());
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -235,7 +235,7 @@ public class SuperBoundaryStreamsTest {
     }
 
     @Test
-    public void superBoundaryWithoutPreviousBoundaryTest() throws IOException {
+    public void stopBoundaryWithoutPreviousBoundaryTest() throws IOException {
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
         };
@@ -250,16 +250,16 @@ public class SuperBoundaryStreamsTest {
 
             toWrite.add(s);
         }
-        toWrite.add(new String(BoundaryStreamConsts.SUPER_BOUNDARY));
+        toWrite.add(new String(BoundaryStreamConsts.STOP_BOUNDARY));
         toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -273,7 +273,7 @@ public class SuperBoundaryStreamsTest {
     }
 
     @Test
-    public void superBoundaryWithPreviousBoundaryTest() throws IOException {
+    public void stopBoundaryWithPreviousBoundaryTest() throws IOException {
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
         };
@@ -283,16 +283,16 @@ public class SuperBoundaryStreamsTest {
             toWrite.add(s);
             toWrite.add(new String(BoundaryStreamConsts.BOUNDARY));
         }
-        toWrite.add(new String(BoundaryStreamConsts.SUPER_BOUNDARY));
+        toWrite.add(new String(BoundaryStreamConsts.STOP_BOUNDARY));
         toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -306,9 +306,9 @@ public class SuperBoundaryStreamsTest {
     }
 
     @Test
-    public void oneCharacterSuperBoundaryWithoutPreviousBoundaryTest() throws IOException {
+    public void oneCharacterStopBoundaryWithoutPreviousBoundaryTest() throws IOException {
         String boundary = String.valueOf('\1');
-        String superBoundary = String.valueOf('\2');
+        String stopBoundary = String.valueOf('\2');
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
@@ -324,16 +324,16 @@ public class SuperBoundaryStreamsTest {
 
             toWrite.add(s);
         }
-        toWrite.add(superBoundary);
+        toWrite.add(stopBoundary);
         toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), superBoundary.getBytes());
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), stopBoundary.getBytes());
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -347,9 +347,9 @@ public class SuperBoundaryStreamsTest {
     }
 
     @Test
-    public void oneCharacterSuperBoundaryWithPreviousBoundaryTest() throws IOException {
+    public void oneCharacterStopBoundaryWithPreviousBoundaryTest() throws IOException {
         String boundary = String.valueOf('\1');
-        String superBoundary = String.valueOf('\2');
+        String stopBoundary = String.valueOf('\2');
 
         String strings[] = {
                 "a", "bc", "def", generateLongString(), generateLongString() + generateLongString()
@@ -360,16 +360,16 @@ public class SuperBoundaryStreamsTest {
             toWrite.add(s);
             toWrite.add(boundary);
         }
-        toWrite.add(superBoundary);
+        toWrite.add(stopBoundary);
         toWrite.add(JUNK);
 
         writeStrings(tmpFile, toWrite.toArray(new String[0]));
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), superBoundary.getBytes());
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile), boundary.getBytes(), stopBoundary.getBytes());
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -463,9 +463,9 @@ public class SuperBoundaryStreamsTest {
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
 
             for (InputStream is : sbis) {
                 String res = readStream(is);
@@ -488,9 +488,9 @@ public class SuperBoundaryStreamsTest {
         String[] results = new String[strings.length];
         int streamIndex = 0;
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
 
             StringBuilder sb = new StringBuilder();
             int read;
@@ -529,9 +529,9 @@ public class SuperBoundaryStreamsTest {
 
         List<String> results = new ArrayList<String>();
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
             Iterator<InputStream> it = sbis.iterator();
 
             while (it.hasNext()) {
@@ -565,9 +565,9 @@ public class SuperBoundaryStreamsTest {
         };
         writeStringStreams(tmpFile, strings);
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
             Iterator<InputStream> it = sbis.iterator();
 
             assertThat(it.hasNext(), is(true));
@@ -595,18 +595,18 @@ public class SuperBoundaryStreamsTest {
 
     @Test
     public void imageDataTest() throws IOException {
-        SuperBoundaryOutputStream sbos = null;
+        StopBoundaryOutputStream sbos = null;
         try {
-            sbos = new SuperBoundaryOutputStream(new FileOutputStream(tmpFile));
+            sbos = new StopBoundaryOutputStream(new FileOutputStream(tmpFile));
 
-            IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image1.jpeg"), sbos);
+            IOUtils.copy(StopBoundaryStreamsTest.class.getResourceAsStream("/image1.jpeg"), sbos);
             sbos.boundary();
-            IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), sbos);
+            IOUtils.copy(StopBoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), sbos);
             sbos.boundary();
-            IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), sbos);
+            IOUtils.copy(StopBoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), sbos);
             sbos.boundary();
 
-            sbos.superBoundary();
+            sbos.stopBoundary();
 
             sbos.write(JUNK.getBytes());
 
@@ -619,18 +619,18 @@ public class SuperBoundaryStreamsTest {
 
     @Test
     public void imageDataNoBoundaryAtEndTest() throws IOException {
-        SuperBoundaryOutputStream sbos = null;
+        StopBoundaryOutputStream sbos = null;
         try {
-            sbos = new SuperBoundaryOutputStream(new FileOutputStream(tmpFile));
+            sbos = new StopBoundaryOutputStream(new FileOutputStream(tmpFile));
 
-            IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image1.jpeg"), sbos);
+            IOUtils.copy(StopBoundaryStreamsTest.class.getResourceAsStream("/image1.jpeg"), sbos);
             sbos.boundary();
-            IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), sbos);
+            IOUtils.copy(StopBoundaryStreamsTest.class.getResourceAsStream("/image2.jpeg"), sbos);
             sbos.boundary();
-            IOUtils.copy(SuperBoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), sbos);
+            IOUtils.copy(StopBoundaryStreamsTest.class.getResourceAsStream("/image3.jpeg"), sbos);
             // sbos.boundary(); // no boundary at the end
 
-            sbos.superBoundary();
+            sbos.stopBoundary();
 
             sbos.write(JUNK.getBytes());
 
@@ -644,9 +644,9 @@ public class SuperBoundaryStreamsTest {
     private void checkImagesStream() throws IOException {
         File[] imageFiles = {tmpFolder.newFile(), tmpFolder.newFile(), tmpFolder.newFile()};
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(tmpFile));
+            sbis = new StopBoundaryInputStream(new FileInputStream(tmpFile));
 
             int streamIndex = 0;
 
@@ -679,9 +679,9 @@ public class SuperBoundaryStreamsTest {
         String[] results = new String[strings.length];
         int streamIndex = 0;
 
-        SuperBoundaryInputStream sbis = null;
+        StopBoundaryInputStream sbis = null;
         try {
-            sbis = new SuperBoundaryInputStream(new FileInputStream(file));
+            sbis = new StopBoundaryInputStream(new FileInputStream(file));
 
             StringBuilder sb = new StringBuilder();
             int read;
@@ -711,7 +711,7 @@ public class SuperBoundaryStreamsTest {
         }
     }
 
-    // three times longer than the superBoundary
+    // three times longer than the stopBoundary
     private String generateLongString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < BoundaryStreamConsts.BOUNDARY.length * 3; i++) {
@@ -735,9 +735,9 @@ public class SuperBoundaryStreamsTest {
     }
 
     private void writeStringStreams(File file, String... strings) throws IOException {
-        SuperBoundaryOutputStream sbos = null;
+        StopBoundaryOutputStream sbos = null;
         try {
-            sbos = new SuperBoundaryOutputStream(new FileOutputStream(file));
+            sbos = new StopBoundaryOutputStream(new FileOutputStream(file));
 
             writeStringStreams(sbos, strings);
 
@@ -746,10 +746,10 @@ public class SuperBoundaryStreamsTest {
         }
     }
 
-    private void writeStringStreams(File file, byte[] boundary, byte[] superBoundary, String... strings) throws IOException {
-        SuperBoundaryOutputStream sbos = null;
+    private void writeStringStreams(File file, byte[] boundary, byte[] stopBoundary, String... strings) throws IOException {
+        StopBoundaryOutputStream sbos = null;
         try {
-            sbos = new SuperBoundaryOutputStream(new FileOutputStream(file), boundary, superBoundary);
+            sbos = new StopBoundaryOutputStream(new FileOutputStream(file), boundary, stopBoundary);
 
             writeStringStreams(sbos, strings);
 
@@ -758,13 +758,13 @@ public class SuperBoundaryStreamsTest {
         }
     }
 
-    private void writeStringStreams(SuperBoundaryOutputStream sbos, String... strings) throws IOException {
+    private void writeStringStreams(StopBoundaryOutputStream sbos, String... strings) throws IOException {
         for (String str : strings) {
             sbos.write(str.getBytes());
             sbos.boundary();
         }
 
-        sbos.superBoundary();
+        sbos.stopBoundary();
 
         sbos.write(JUNK.getBytes());
     }

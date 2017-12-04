@@ -5,43 +5,43 @@ import java.io.InputStream;
 import java.util.NoSuchElementException;
 
 /**
- * Super boundary input stream decorator class.
+ * Stop boundary input stream decorator class.
  *
  * @author ttulka
  */
-public class SuperBoundaryInputStream extends BoundaryInputStream {
+public class StopBoundaryInputStream extends BoundaryInputStream {
 
-    protected final int[] superBoundary;
+    protected final int[] stopBoundary;
 
     /**
-     * Creates the super boundary input stream based on a base input stream.
+     * Creates the stop boundary input stream based on a base input stream.
      * <p>
      * Uses the boundaries from <code>{@link BoundaryStreamConsts}</code>.
      *
      * @param inputStream the base input stream
      */
-    public SuperBoundaryInputStream(InputStream inputStream) {
-        this(inputStream, BoundaryStreamConsts.BOUNDARY, BoundaryStreamConsts.SUPER_BOUNDARY);
+    public StopBoundaryInputStream(InputStream inputStream) {
+        this(inputStream, BoundaryStreamConsts.BOUNDARY, BoundaryStreamConsts.STOP_BOUNDARY);
     }
 
     /**
-     * Creates the super boundary input stream based on a base input stream with explicit boundaries.
+     * Creates the stop boundary input stream based on a base input stream with explicit boundaries.
      *
-     * @param inputStream   the base input stream
-     * @param boundary      the boundary
-     * @param superBoundary the super boundary
+     * @param inputStream  the base input stream
+     * @param boundary     the boundary
+     * @param stopBoundary the stop boundary
      */
-    public SuperBoundaryInputStream(InputStream inputStream, byte[] boundary, byte[] superBoundary) {
-        super(inputStream, boundary, Math.max(boundary.length, superBoundary.length));
-        this.superBoundary = copyBoundary(superBoundary);
+    public StopBoundaryInputStream(InputStream inputStream, byte[] boundary, byte[] stopBoundary) {
+        super(inputStream, boundary, Math.max(boundary.length, stopBoundary.length));
+        this.stopBoundary = copyBoundary(stopBoundary);
 
-        if (new String(boundary).contains(new String(superBoundary)) || new String(superBoundary).contains(new String(boundary))) {
-            throw new IllegalArgumentException("The boundary cannot be a substring of the super boundary or vice versa.");
+        if (new String(boundary).contains(new String(stopBoundary)) || new String(stopBoundary).contains(new String(boundary))) {
+            throw new IllegalArgumentException("The boundary cannot be a substring of the stop boundary or vice versa.");
         }
     }
 
     /**
-     * Returns true if the stream has already reached the superBoundary or EOF.
+     * Returns true if the stream has already reached the stopBoundary or EOF.
      *
      * @return true if the stream finished, otherwise false
      */
@@ -62,12 +62,12 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
 
     /**
      * Reads the next byte of data from the input stream. The value byte is returned as an <code>int</code> in the range <code>0</code> to <code>255</code>. If
-     * no byte is available because the boundary of the current sub-stream has been reached, the superBoundary has been reached, or no byte is available because
+     * no byte is available because the boundary of the current sub-stream has been reached, the stopBoundary has been reached, or no byte is available because
      * the end of the base stream has been reached, the value <code>-1</code> is returned. This method blocks until input data is available, the end of the
      * stream is detected, or an exception is thrown.
      *
-     * @return the next byte of data, or <code>-1</code> if the boundary of the current sub-stream is reached, the superBoundary is reached, or if the end of
-     * the base stream is reached
+     * @return the next byte of data, or <code>-1</code> if the boundary of the current sub-stream is reached, the stopBoundary is reached, or if the end of the
+     * base stream is reached
      * @throws IOException if an I/O error occurs
      */
     @Override
@@ -81,8 +81,8 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
 
         initBuffer();
 
-        // are we at the superBoundary?
-        if (startsWith(buffer, superBoundary)) {
+        // are we at the stopBoundary?
+        if (startsWith(buffer, stopBoundary)) {
             endOfCurrentStream = true;
             finished = true;
 
@@ -97,7 +97,7 @@ public class SuperBoundaryInputStream extends BoundaryInputStream {
                 readByteToBufferAndGet();
             }
 
-            if (buffer[0] == -1 || startsWith(buffer, superBoundary)) {
+            if (buffer[0] == -1 || startsWith(buffer, stopBoundary)) {
                 finished = true;
             }
 
