@@ -147,7 +147,7 @@
     <scm>
         <connection>scm:git:git@github.com:ttulka/boundary-io-streams.git</connection>
         <developerConnection>scm:git:git@github.com:ttulka/boundary-io-streams.git</developerConnection>
-        <url>git@github.com:ttulka/boundary-io-streams.git</url>
+        <url>https://github.com/ttulka/boundary-io-streams</url>
     </scm>
 
     <developers>
