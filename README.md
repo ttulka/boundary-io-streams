@@ -26,7 +26,7 @@ Please note the last boundary is not necessary but recommended for a good stream
 ## Usage
 
 Copy the Maven dependency into your Maven project:
-```
+```xml
 <dependency>
     <groupId>cz.net21.ttulka.io</groupId>
     <artifactId>boundary-io-streams</artifactId>
@@ -37,7 +37,7 @@ Copy the Maven dependency into your Maven project:
 ### Read from a Boundary Stream
 
 #### Create a boundary input stream:
-```
+```java
 BoundaryInputStream bis = null;
 try {
     // create the bis from a file input stream
@@ -52,7 +52,7 @@ try {
 ```
 
 #### Iterate through multiple streams:
-```
+```java
 for (InputStream is : bis) {
     int b;
     while ((b = is.read()) != -1) {
@@ -62,7 +62,7 @@ for (InputStream is : bis) {
 ```
 
 #### Use the multiple stream iterator:
-```
+```java
 Iterator<InputStream> it = bis.iterator();
 if (it.hasNext()) {
     InputStream is = it.next();
@@ -75,7 +75,7 @@ if (it.hasNext()) {
 ```
 
 #### Alternatively you can work with the boundary input stream directly:
-```
+```java
 while (!bis.hasFinished()) {
     bis.next();
     
@@ -89,7 +89,7 @@ while (!bis.hasFinished()) {
 ### Write into a Boundary Stream
 
 #### Create a boundary output stream:
-```
+```java
 BoundaryOutputStream bos = null;
 try {
     // create the bos from a file output stream 
@@ -104,7 +104,7 @@ try {
 ```
 
 #### Write multiple streams into a boundary output stream:
-```
+```java
 byte[] subStream1 = ...
 bos.write(subStream1);
 bos.boundary(); // write the boundary after the first sub-stream
@@ -115,7 +115,7 @@ bos.boundary(); // write the boundary after the second sub-stream
 ```
 
 Method `boundary()` is only convenient and identical to the following code:
-```
+```java
 byte[] boundary = ...
 os.write(boundary);
 ```
@@ -129,7 +129,7 @@ The stop boundary streaming is still using a boundary to separate sub-streams, b
 The manner of work is same as with `BoundaryInputStream`, resp. `BoundaryOutputStream`.
 
 #### Example:
-```
+```java
 String[] values = {
         "abcde", "ABCDE", "12345"
 };
